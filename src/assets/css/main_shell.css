@@ -2,6 +2,9 @@ section#main_shell {
     width: 65%;
     height: 60.3%;
     padding: 0.74vh;
+    /* Everything inside the frame is the terminal's colour. Without it the page's dot grid showed
+       through the padding between the frame and the terminal. */
+    background: var(--color_terminal_bg);
 
     --aug-border: 0.18vh;
     --aug-border-bg: rgb(var(--color_r), var(--color_g), var(--color_b));
@@ -18,6 +21,29 @@ section#main_shell {
        than the page for a moment, and it must not be squeezed to fit — hence no shrinking. */
     flex-shrink: 0;
     transition: width .5s cubic-bezier(0.85, 0.5, 0.85, 0.5), height .5s cubic-bezier(0.85, 0.5, 0.85, 0.5), margin .5s cubic-bezier(0.85, 0.5, 0.85, 0.5);
+}
+
+/* The frame is a real border. augmented-ui paints the border colour over the whole box and cuts
+   the middle out with a clip-path; Chromium sometimes drops that clip-path once the terminal is
+   put in, and the half-transparent colour then covered the whole terminal in grey. A border has
+   no middle to lose. The diagonals of the two clipped corners are stripes along the diagonal of a
+   square; the square overhangs the corner by a border width on both sides, so the diagonal stays
+   on the cut while the stripe reaches into the straight edges and meets them in a mitre. Those
+   edges are cut by the frame's own clip-path. */
+section#main_shell::after {
+    --frame-overhang: calc(-1 * var(--aug-border));
+    --frame-tr: calc(var(--aug-tr) + 2 * var(--aug-border));
+    --frame-bl: calc(var(--aug-bl) + 2 * var(--aug-border));
+    --frame-stripe: transparent calc(50% - 0.5px), var(--aug-border-bg) calc(50% + 0.5px), var(--aug-border-bg) calc(50% + var(--aug-border)), transparent calc(50% + var(--aug-border) + 0.5px);
+
+    clip-path: none;
+    box-sizing: border-box;
+    border: var(--aug-border) solid var(--aug-border-bg);
+    background:
+        linear-gradient(to bottom left, var(--frame-stripe))
+            right var(--frame-overhang) top var(--frame-overhang) / var(--frame-tr) var(--frame-tr) no-repeat border-box,
+        linear-gradient(to top right, var(--frame-stripe))
+            left var(--frame-overhang) bottom var(--frame-overhang) / var(--frame-bl) var(--frame-bl) no-repeat border-box;
 }
 
 h1#main_shell_greeting {
