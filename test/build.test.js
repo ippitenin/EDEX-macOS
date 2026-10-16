@@ -12,6 +12,7 @@ const {Arch} = require("builder-util");
 const {swiftTargetForArch} = require("../build/lib/arch.js");
 const {HELPER_NAME} = require("../build/afterPack.js");
 const {finderServiceHelper} = require("../src/utils/system.js");
+const {isDeveloperId, distributionOverrides, ENTITLEMENTS} = require("../build/lib/signing.js");
 
 const root = path.join(__dirname, "..");
 const read = file => fs.readFileSync(path.join(root, file), "utf-8");
@@ -72,4 +73,68 @@ test("the app registers the helper afterPack embeds", () => {
     assert.ok(helper.endsWith(`/Contents/Library/Services/${HELPER_NAME}.app/Contents/MacOS/${HELPER_NAME}`), helper);
     assert.ok(read("src/_boot.js").includes(`["--register"]`), "_boot.js passes the flag");
     assert.ok(read("extras/service-helper/main.swift").includes(`"--register"`), "main.swift reads the flag");
+});
+
+// What `security find-identity -v -p codesigning` prints, trimmed to the shapes that matter.
+const IDENTITIES = [
+    '  1) 33F6EA11F107A464E5E6DED5351C0899B3E860C5 "EDEX Local Signing"',
+    '  2) 65A33C5140CDD6E1FAB2A6BB16049EAAB29865FF "Apple Development: Jane Doe (ABCDE12345)"',
+    '  3) 4611211DDBE60AA366171141EC3DA1D783B507C6 "Developer ID Application: Example Ltd (TEAM123456)"',
+    "     3 valid identities found"
+].join("\n");
+
+test("only a Developer ID in the keychain makes a distribution build", () => {
+    assert.strictEqual(isDeveloperId("Example Ltd (TEAM123456)", IDENTITIES), true);
+    // electron-builder strips the prefix with a warning; it means the same certificate.
+    assert.strictEqual(isDeveloperId("Developer ID Application: Example Ltd (TEAM123456)", IDENTITIES), true);
+    assert.strictEqual(isDeveloperId("EDEX Local Signing", IDENTITIES), false, "self-signed");
+    assert.strictEqual(isDeveloperId("Jane Doe (ABCDE12345)", IDENTITIES), false, "development certificate");
+    assert.strictEqual(isDeveloperId("Example Ltd", IDENTITIES), false, "a partial name is not the identity");
+    assert.strictEqual(isDeveloperId("Other Ltd (OTHER12345)", IDENTITIES), false, "not in the keychain");
+    assert.strictEqual(isDeveloperId(undefined, IDENTITIES), false, "no CSC_NAME, ad-hoc");
+});
+
+test("a distribution build gets what notarisation demands", () => {
+    // package.json keeps the fast local settings; notarytool rejects an app without these.
+    const pkg = JSON.parse(read("package.json"));
+    assert.strictEqual(pkg.build.mac.hardenedRuntime, false);
+    assert.strictEqual(pkg.build.mac.timestamp, "none");
+    const {mac} = distributionOverrides();
+    assert.strictEqual(mac.hardenedRuntime, true);
+    assert.ok(mac.timestamp && mac.timestamp !== "none", mac.timestamp);
+    assert.strictEqual(mac.entitlements, ENTITLEMENTS);
+    assert.strictEqual(mac.entitlementsInherit, ENTITLEMENTS);
+});
+
+test("a distribution build leaves Chromium's resource packs to the framework signature", () => {
+    // electron-builder turns each entry into a RegExp and tests it against the full path.
+    const ignore = distributionOverrides().mac.signIgnore.map(it => new RegExp(it));
+    const skipped = file => ignore.some(re => re.test(file));
+    const framework = "/x/EDEX.app/Contents/Frameworks/Electron Framework.framework/Versions/A";
+    assert.ok(skipped(`${framework}/Resources/ca.lproj/locale.pak`));
+    assert.ok(skipped(`${framework}/Resources/resources.pak`));
+    // Code is never skipped: notarisation rejects an app with an unsigned Mach-O inside.
+    assert.ok(!skipped(`${framework}/Electron Framework`));
+    assert.ok(!skipped("/x/EDEX.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/build/Release/pty.node"));
+    assert.ok(!skipped("/x/EDEX.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/build/Release/spawn-helper"));
+});
+
+test("the entitlements let V8 run under the hardened runtime", () => {
+    // Without allow-jit the app dies at launch, which neither the build nor notarytool notices.
+    const plist = read(ENTITLEMENTS);
+    for (const key of ["com.apple.security.cs.allow-jit", "com.apple.security.automation.apple-events"]) {
+        assert.match(plist, new RegExp(`<key>${key.replace(/\./g, "\\.")}</key>\\s*<true/>`), key);
+    }
+    // macOS shows this text when a program run in EDEX first sends Apple events.
+    assert.ok(JSON.parse(read("package.json")).build.mac.extendInfo.NSAppleEventsUsageDescription);
+});
+
+test("the codesign retry wrapper hands over to the real codesign", () => {
+    // It is found through PATH under the name "codesign": calling codesign by name from inside
+    // would find itself and never stop.
+    const file = path.join(root, "build", "bin", "codesign");
+    assert.ok(fs.statSync(file).mode & 0o111, "executable");
+    const script = fs.readFileSync(file, "utf-8");
+    assert.ok(script.includes("/usr/bin/codesign \"$@\""), "calls the real one by its full path");
+    assert.ok(!/^\s*codesign\b/m.test(script), "never codesign by name");
 });

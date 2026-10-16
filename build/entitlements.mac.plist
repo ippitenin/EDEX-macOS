@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Entitlements for the hardened runtime, which notarisation requires and which only Developer ID
+  builds turn on (build/lib/signing.js). Without the hardened runtime macOS ignores this file.
+
+  The first three are electron-builder's own defaults: V8 needs to generate code at run time, and
+  native modules such as node-pty are loaded by Electron.
+
+  The rest exist because EDEX is a terminal. macOS charges whatever a program run in it does to
+  EDEX, the responsible process, and under the hardened runtime it refuses those requests outright,
+  without asking, unless EDEX holds the matching entitlement. Without them `osascript` could not
+  talk to other apps and a recorder run from the shell would get silence.
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.cs.allow-jit</key>
+	<true/>
+	<key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+	<true/>
+	<key>com.apple.security.cs.disable-library-validation</key>
+	<true/>
+
+	<key>com.apple.security.automation.apple-events</key>
+	<true/>
+	<key>com.apple.security.device.audio-input</key>
+	<true/>
+	<key>com.apple.security.device.camera</key>
+	<true/>
+</dict>
+</plist>
