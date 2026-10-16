@@ -12,7 +12,7 @@ const {isDeveloperId, distributionOverrides} = require("./lib/signing.js");
 const config = {
     // Outside the project on purpose: macOS hangs an empty com.apple.FinderInfo on bundle
     // directories in watched locations like the Desktop, and codesign refuses to sign anything
-    // carrying it. See "Building a distributable" in README.md.
+    // carrying it. See "Building a distributable" in CONTRIBUTING.md.
     directories: {output: path.join(os.homedir(), "Library", "Caches", "edex-build")}
 };
 

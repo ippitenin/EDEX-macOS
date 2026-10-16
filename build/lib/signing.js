@@ -5,7 +5,7 @@
 // Apple has notarised the app. Notarisation in turn demands the hardened runtime and a trusted
 // timestamp on every signature. A local build signed with a self-signed certificate needs none of
 // that, and the timestamps alone would take it from eighty seconds to ten minutes — see "Signing,
-// and why it matters here" in README.md — so package.json keeps the fast local settings and these
+// and why it matters here" in CONTRIBUTING.md — so package.json keeps the fast local settings and these
 // overrides apply only when the identity is a Developer ID.
 
 "use strict";

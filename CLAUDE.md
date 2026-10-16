@@ -24,7 +24,7 @@ Silicon. Electron 43, `nodeIntegration: true`, no build step for the app code.
 
 ```sh
 npm run install-darwin   # deps + node-pty rebuilt against Electron's ABI
-npm start                # fast launch with --nointro; macOS calls it "Electron", see README
+npm start                # fast launch with --nointro; macOS calls it "Electron", see CONTRIBUTING.md
 npm run start-app        # launches as EDEX through the dev bundle
 npm run lint             # ESLint, tuned for defects rather than style
 npm test                 # unit tests
