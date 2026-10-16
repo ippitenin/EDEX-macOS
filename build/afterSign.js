@@ -43,5 +43,5 @@ exports.default = async function(context) {
         ].join("\n"));
     }
 
-    console.warn("  • signed ad-hoc: macOS will ask for every permission again after each rebuild, see README.md");
+    console.warn("  • signed ad-hoc: macOS will ask for every permission again after each rebuild, see CONTRIBUTING.md");
 };

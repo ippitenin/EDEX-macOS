@@ -23,7 +23,7 @@ const electronApp = path.join(projectDir, "node_modules", "electron", "dist", "E
 
 // Outside the project on purpose, next to the release builds: macOS hangs an empty
 // com.apple.FinderInfo on bundle directories in watched locations like the Desktop, and codesign
-// refuses to sign anything carrying it. See "Building a distributable" in README.md.
+// refuses to sign anything carrying it. See "Building a distributable" in CONTRIBUTING.md.
 const devDir = path.join(os.homedir(), "Library", "Caches", "edex-build", "dev");
 const bundle = path.join(devDir, "EDEX.app");
 const stampFile = path.join(devDir, ".electron-version");
