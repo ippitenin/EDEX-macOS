@@ -5,8 +5,8 @@
 <h1 align="center">EDEX</h1>
 
 <p align="center">
-  <b>The sci-fi terminal from eDEX-UI, revived for Apple silicon.</b><br>
-  A maintained fork: native arm64, Electron 43, a hardened shell — and quiet by default.
+  <b>A sci-fi terminal for macOS, built for Apple silicon.</b><br>
+  Native arm64, Electron 43, a hardened shell — and quiet by default.
 </p>
 
 <p align="center">
@@ -27,12 +27,12 @@
 </p>
 
 <p align="center">
-  <img src="media/screenshot_default.png" alt="EDEX: terminal, system monitor, network globe, file browser and on-screen keyboard" width="900">
+  <img src="media/edex-main.png" alt="EDEX in the Tron theme: a system summary in the terminal, the system monitor, network globe, file browser and on-screen keyboard" width="900">
 </p>
 
-eDEX-UI is a fullscreen terminal and system monitor that looks like a computer from a science
-fiction film. The original was archived in 2021 at v2.2.8 on Electron 12; this fork picks it up
-from there and makes it a daily driver on a current Mac.
+EDEX is a fullscreen terminal and system monitor that looks like a computer from a science
+fiction film. It grew out of eDEX-UI, which was archived in 2021 at v2.2.8 on Electron 12, and
+has since become an app of its own — a daily driver on a current Mac.
 
 ## What the fork brings
 
@@ -163,18 +163,18 @@ security review behind them, and its follow-up, is written up in [AUDIT.md](AUDI
 
 ## Themes
 
-The themes of the original are all here — a few of them:
+EDEX ships with 21 themes, from Tron to Nord. Three of them:
 
 <table>
   <tr>
-    <td width="33%"><img src="media/screenshot_blade.png" alt="Blade theme"></td>
-    <td width="33%"><img src="media/screenshot_disrupted.png" alt="Disrupted theme"></td>
-    <td width="33%"><img src="media/screenshot_horizon.png" alt="Horizon theme"></td>
+    <td width="33%"><img src="media/edex-disrupted.png" alt="Tron Disrupted theme with glyphs raining down the terminal"></td>
+    <td width="33%"><img src="media/edex-blade.png" alt="Blade theme with EDEX's own source open in vim"></td>
+    <td width="33%"><img src="media/edex-nord.png" alt="Nord theme with the repository's git log graph"></td>
   </tr>
   <tr>
-    <td align="center"><sub>Blade</sub></td>
-    <td align="center"><sub>Disrupted</sub></td>
-    <td align="center"><sub>Horizon</sub></td>
+    <td align="center"><sub>Tron Disrupted</sub></td>
+    <td align="center"><sub>Blade · vim</sub></td>
+    <td align="center"><sub>Nord · git log</sub></td>
   </tr>
 </table>
 
@@ -202,6 +202,9 @@ window-to-main plumbing and has not been attempted.
 <details>
 <summary><b>Version history</b></summary>
 
+- **2.4.4** (2026-10-16) — the terminal is dark again. Its frame was a half-transparent fill with
+  the middle cut out, and Chromium sometimes dropped the cut-out, turning the whole terminal grey;
+  the frame is now a plain border, and the page's dot grid no longer shows inside it.
 - **2.4.3** (2026-09-30) — two folders sent from Finder in quick succession each get their own tab.
   The second used to connect to the first one's shell, fail with an error dialog and leave its own
   shell running with no tab.
