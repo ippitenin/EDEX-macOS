@@ -44,6 +44,9 @@ that session's environment.
 - [ ] Tab title shows the running process (run `top`, then quit it)
 - [ ] Copy and paste through the app shortcuts
 - [ ] Set `shellArgs` to `-l` in the settings editor, save, restart — the terminal still starts
+- [ ] Developer ID build: `osascript -e 'tell application "Finder" to get name'` asks once to
+      control Finder and then prints `Finder` — not "Not authorized to send Apple events"
+- [ ] Developer ID build: `xcrun stapler validate /Applications/EDEX.app` reports the ticket
 
 ## On-screen keyboard
 

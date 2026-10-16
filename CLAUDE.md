@@ -28,7 +28,7 @@ npm start                # fast launch with --nointro; macOS calls it "Electron"
 npm run start-app        # launches as EDEX through the dev bundle
 npm run lint             # ESLint, tuned for defects rather than style
 npm test                 # unit tests
-npm run build-darwin     # signed .dmg into dist/
+npm run build-darwin     # signed .dmg into dist/; notarised when the identity is a Developer ID
 ```
 
 `SMOKE.md` is the manual checklist for anything that needs a running app. Run it after a build.
@@ -82,6 +82,20 @@ npm run build-darwin     # signed .dmg into dist/
   requirement. With a certificate that requirement names the bundle id and the certificate and
   survives rebuilds; ad-hoc it falls back to the build's hash and every rebuild re-asks for
   everything. The identity is in `build/signing.env`, git-ignored.
+- **A Developer ID build is a different build.** `build/build-darwin.js` checks the keychain, and
+  for a Developer ID it adds the hardened runtime, trusted timestamps and
+  `build/entitlements.mac.plist` on top of `package.json`, whose fast local settings stay as they
+  are (`build/lib/signing.js`). Under the hardened runtime whatever a program in the terminal asks
+  macOS for is charged to EDEX and refused without a prompt unless the entitlements grant it:
+  Apple events, the microphone and the camera are there, and anything else a shell turns out to
+  need goes there too. Notarisation runs whenever `APPLE_KEYCHAIN_PROFILE` is set. `.pak` files
+  are not signed one by one there (`signIgnore`): with them every build made ~260 timestamp
+  requests and Apple's server gave up partway. Even thirty in a row hit its pauses now and then,
+  so those builds put `build/bin/codesign` first on PATH: it retries the one file that got no
+  timestamp, where electron-builder's own retry would start the whole pass over.
+- **`build/build-darwin.js` must keep its exit-code workaround.** electron-builder's temp-dir
+  cleanup calls `process.exit(0)`, so a failed build otherwise exits 0 and `postbuild-darwin`
+  copies a stale `.dmg` from the cache into `dist/` as if it were new.
 - **`prebuild-src/` is a build artifact.** `prebuild-darwin` deletes it, rsyncs `src/` into it and
   minifies; the minifier never sees `node_modules`.
 - **`npm install` inside `src/` rebuilds `node-pty` for Node, not for Electron**, and the terminal

@@ -227,11 +227,36 @@ A self-signed certificate solves the rebuild problem on your own machine and not
 means nothing to anyone else's Mac: Gatekeeper will still refuse a downloaded build until the user
 allows it by hand. Distributing without that warning needs an Apple Developer ID and notarisation.
 
-`mac.timestamp` is set to `none` deliberately. A trusted timestamp keeps a signature valid past the
-certificate's expiry, which is pointless for a local certificate good until 2046, and it costs a
-network round-trip to Apple for each of the ~230 nested objects being signed — the difference
-between a build that takes ten minutes and one that takes eighty seconds. Notarised distribution
-builds do need it; remove the line if that ever becomes the goal.
+### Developer ID and notarisation
+
+A build for other people's Macs is signed with a **Developer ID Application** certificate from the
+Apple Developer Program and notarised by Apple. Name the certificate in `build/signing.env` the
+way electron-builder expects it, without the `Developer ID Application:` prefix, and add the
+`notarytool` profile:
+
+```sh
+export CSC_NAME="Example Ltd (TEAM123456)"
+export APPLE_KEYCHAIN_PROFILE="apps-notary"
+```
+
+The profile is created once with
+`xcrun notarytool store-credentials apps-notary --apple-id <Apple ID> --team-id <Team ID>`, which
+asks for an app-specific password. When the identity is a Developer ID, `build/build-darwin.js`
+adds what notarisation demands on top of `package.json`: the hardened runtime, trusted timestamps
+and the entitlements in `build/entitlements.mac.plist`. electron-builder then notarises the app
+and staples the ticket to it, and the `.dmg` opens on any Mac without a warning.
+
+`mac.timestamp` stays `none` in `package.json` deliberately. A trusted timestamp keeps a
+signature valid past the certificate's expiry, which is pointless for a local certificate good
+until 2046, and it costs a network round-trip to Apple for each of the ~230 nested objects being
+signed — the difference between a build that takes ten minutes and one that takes eighty seconds.
+Only Developer ID builds pay that, because notarisation refuses a signature without one. They also
+leave Chromium's `.pak` resource packs, 223 of the files, to Electron Framework's own signature
+instead of signing each one: hundreds of timestamp requests in a row made Apple's server stop
+answering, and about thirty remain.
+
+Switching between identities is a new app as far as macOS is concerned: the folder permissions
+are asked for once more after the first build with the other certificate.
 
 ## Credits and attribution
 

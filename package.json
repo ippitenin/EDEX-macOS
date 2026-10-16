@@ -23,7 +23,7 @@
     "prebuild-darwin": "rm -rf prebuild-src && rsync -a src/ prebuild-src --exclude node_modules && node prebuild-minify.js && cd prebuild-src && npm install",
     "prebuild-windows": "mkdir prebuild-src && xcopy src\\* prebuild-src\\ /E /C /Q /Y && node prebuild-minify.js && cd prebuild-src && npm install",
     "build-linux": "./node_modules/.bin/electron-builder build -l --x64 --ia32 --arm64 --armv7l",
-    "build-darwin": "[ -f ./build/signing.env ] && . ./build/signing.env; ./node_modules/.bin/electron-builder build -m -c.directories.output=\"$HOME/Library/Caches/edex-build\"",
+    "build-darwin": "[ -f ./build/signing.env ] && . ./build/signing.env; node build/build-darwin.js",
     "build-windows": "node_modules\\.bin\\electron-builder build -w",
     "postbuild-linux": "rm -R prebuild-src",
     "postbuild-darwin": "rm -R prebuild-src && mkdir -p dist && cp \"$HOME/Library/Caches/edex-build/\"*.dmg dist/",
@@ -85,7 +85,10 @@
       "icon": "media/icon.icns",
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
-      "timestamp": "none"
+      "timestamp": "none",
+      "extendInfo": {
+        "NSAppleEventsUsageDescription": "Programs you run in EDEX, such as osascript, can control other apps."
+      }
     },
     "dmg": {
       "artifactName": "EDEX-macOS-${arch}.dmg"
