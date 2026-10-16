@@ -1,24 +1,89 @@
 <p align="center">
-  <img src="media/edex-icon.png" alt="EDEX" width="180">
+  <img src="media/edex-icon.png" alt="EDEX" width="150">
 </p>
 
 <h1 align="center">EDEX</h1>
 
-A maintained fork of [eDEX-UI](https://github.com/GitSquared/edex-ui) — the sci-fi desktop
-terminal — brought up to date and made usable as a daily driver on Apple Silicon.
+<p align="center">
+  <b>The sci-fi terminal from eDEX-UI, revived for Apple silicon.</b><br>
+  A maintained fork: native arm64, Electron 43, a hardened shell — and quiet by default.
+</p>
 
-The upstream project was archived at v2.2.8 on Electron 12. This fork picks it up from there:
-native arm64, a current Electron, patched dependencies, and a terminal that no longer plays a
-sound on every keystroke.
+<p align="center">
+  <b>English</b> · <a href="README.ru.md">Русский</a>
+</p>
 
-> Looking for the original project's README, screenshots and credits? See
-> [README.upstream.md](README.upstream.md).
+<p align="center">
+  <a href="https://github.com/ippitenin/EDEX-macOS/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/ippitenin/EDEX-macOS?label=release&color=0aa7b5"></a>
+  <img alt="macOS 12+ on Apple silicon" src="https://img.shields.io/badge/macOS-12%2B%20%C2%B7%20Apple%20silicon-1f2328?logo=apple">
+  <img alt="Electron 43" src="https://img.shields.io/badge/Electron-43-47848f?logo=electron&logoColor=white">
+  <a href="LICENSE"><img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-blue"></a>
+</p>
 
-## What is different from upstream
+<p align="center">
+  <a href="https://github.com/ippitenin/EDEX-macOS/releases/latest/download/EDEX-macOS-arm64.dmg"><img alt="Download for macOS" src="https://img.shields.io/badge/Download_for_macOS-0aa7b5?style=for-the-badge&logo=apple&logoColor=white" height="40"></a>
+  <br>
+  <sub>Apple silicon · macOS 12 or later · signed and notarized by Apple</sub>
+</p>
 
-The fork's changes began on **2026-08-14** and are described per-commit in `git log`; the
-[version history](#version-history) below says what each release brought. The security review
-behind them, and its follow-up, is written up in [AUDIT.md](AUDIT.md).
+<p align="center">
+  <img src="media/screenshot_default.png" alt="EDEX: terminal, system monitor, network globe, file browser and on-screen keyboard" width="900">
+</p>
+
+eDEX-UI is a fullscreen terminal and system monitor that looks like a computer from a science
+fiction film. The original was archived in 2021 at v2.2.8 on Electron 12; this fork picks it up
+from there and makes it a daily driver on a current Mac.
+
+## What the fork brings
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>⚡ Native Apple silicon</h3>
+      Built for arm64 instead of running x64 through Rosetta. Idle CPU drops from about 600% to about 40%.
+    </td>
+    <td width="50%" valign="top">
+      <h3>🧬 Electron 12 → 43</h3>
+      Chromium 89 → 150, current electron-builder and <code>node-pty</code>, refreshed dependencies.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🔒 A hardened shell</h3>
+      The terminal socket listens on <code>127.0.0.1</code> only and checks who connects. File and process names are escaped, paths are quoted before they reach the shell.
+    </td>
+    <td width="50%" valign="top">
+      <h3>🪟 A real macOS window</h3>
+      Title bar, resize, move it around. <kbd>Ctrl</kbd>&nbsp;<kbd>Shift</kbd>&nbsp;<kbd>M</kbd> sends it to the next display — fullscreen included.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>📂 Open in EDEX</h3>
+      Right-click a folder in Finder and get a terminal in it, in a free tab if EDEX is already running.
+    </td>
+    <td width="50%" valign="top">
+      <h3>🧲 Drop files, get paths</h3>
+      Files dropped on the window are typed in as escaped paths, the way Terminal does it.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🔇 Quiet by default</h3>
+      No sound on every keystroke or line of output. Enter keeps its confirmation, the boot sequence keeps its own.
+    </td>
+    <td width="50%" valign="top">
+      <h3>⌨️ Any keyboard layout</h3>
+      The on-screen keyboard lights up by physical key under any input source, and Cyrillic gets a matching font.
+    </td>
+  </tr>
+</table>
+
+<details>
+<summary><b>Full list of changes from upstream</b></summary>
+
+The fork's changes began on **2026-08-14** and are described per-commit in `git log`. The
+security review behind them, and its follow-up, is written up in [AUDIT.md](AUDIT.md).
 
 ### Runtime and packaging
 - **Electron 12 → 43** (Chromium 89 → 150), electron-builder 22 → 26, `electron-rebuild` →
@@ -28,7 +93,7 @@ behind them, and its follow-up, is written up in [AUDIT.md](AUDIT.md).
 - Refreshed `nanoid`, `pdfjs-dist`, `smoothie`, `systeminformation`, `ws`; `tar` pinned to
   >= 7.5.21 through `overrides` (transitive, critical advisory).
 
-### Security
+### Security fixes
 - **The terminal websocket binds to `127.0.0.1` only** and verifies `Origin`, accepting just
   the local renderer loaded from `file://`. Upstream listened on every interface and accepted
   whichever client connected first — the long-standing eDEX-UI exposure. Without the Origin
@@ -48,12 +113,6 @@ behind them, and its follow-up, is written up in [AUDIT.md](AUDIT.md).
   patched Electron is a separate update, not part of this release.
 - **The update checker is gone.** It fetched releases from the upstream repository on every
   launch and dropped the response into modal markup, `onclick` handler included.
-
-**Known limitation:** the renderer still runs with `nodeIntegration: true` and
-`contextIsolation: false`, inherited from upstream. The injection paths above are closed, but
-the architecture offers no second line of defence — treat the app as trusting whatever you
-open with it. Moving to a preload bridge is a rewrite of the window-to-main plumbing and has
-not been attempted.
 
 ### Interface
 - Renamed to EDEX throughout; settings live in `~/Library/Application Support/EDEX` and are
@@ -99,7 +158,49 @@ not been attempted.
   Terminal.app does it. That is also what lets Claude Code turn a dropped image into an
   attachment.
 
-## Version history
+
+</details>
+
+## Themes
+
+The themes of the original are all here — a few of them:
+
+<table>
+  <tr>
+    <td width="33%"><img src="media/screenshot_blade.png" alt="Blade theme"></td>
+    <td width="33%"><img src="media/screenshot_disrupted.png" alt="Disrupted theme"></td>
+    <td width="33%"><img src="media/screenshot_horizon.png" alt="Horizon theme"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Blade</sub></td>
+    <td align="center"><sub>Disrupted</sub></td>
+    <td align="center"><sub>Horizon</sub></td>
+  </tr>
+</table>
+
+## Install
+
+1. Download **[EDEX-macOS-arm64.dmg](https://github.com/ippitenin/EDEX-macOS/releases/latest/download/EDEX-macOS-arm64.dmg)** from the latest release.
+2. Open it and drag EDEX to Applications.
+3. Launch it. macOS asks for access to the Desktop, Documents and Downloads folders — the file
+   panel needs them; declining only hides those folders.
+
+After the first launch, right-click any folder in Finder → **Open in EDEX**.
+
+Requires a Mac with Apple silicon and macOS 12 or later. Other platforms are inherited from
+upstream and left untouched — the fork is only tested on macOS arm64.
+
+## Security
+
+The fork went through a security review, written up in [AUDIT.md](AUDIT.md); how to report a
+problem is in [SECURITY.md](SECURITY.md). One limitation is inherited from the original design:
+the renderer runs with `nodeIntegration: true` and `contextIsolation: false`. The injection paths
+found in the review are closed, but there is no second line of defence — treat the app as
+trusting whatever you open with it. Moving to a preload bridge is a rewrite of the
+window-to-main plumbing and has not been attempted.
+
+<details>
+<summary><b>Version history</b></summary>
 
 - **2.4.3** (2026-09-30) — two folders sent from Finder in quick succession each get their own tab.
   The second used to connect to the first one's shell, fail with an error dialog and leave its own
@@ -125,138 +226,17 @@ not been attempted.
 - **2.2.8 + fork** (2026-08-14 to 2026-08-16) — Electron 43 on native arm64, the security audit and
   its fixes, "Open in EDEX" in Finder, signing that keeps permissions, and non-ASCII directory names.
 
-## Requirements
 
-macOS 12 or later on Apple Silicon — Electron 43's floor — plus the Xcode command line tools,
-Node.js and npm to build.
+</details>
 
-Other platforms are inherited from upstream and left untouched — the fork is only tested on
-macOS arm64.
-
-## Running from source
+## Build from source
 
 ```sh
-npm run install-darwin   # installs deps and rebuilds node-pty against Electron's ABI
-npm start
+npm run install-darwin   # dependencies, with node-pty rebuilt for Electron
+npm start                # run from source
 ```
 
-`npm start` runs `electron src --nointro` — the boot log is skipped — which launches the Electron
-bundle from `node_modules` and loads the project inside it — so macOS calls the app "Electron" in the menu bar, the Dock and the process
-list, and shows Electron's icon. That name comes from that bundle's `Info.plist`; `app.setName()`
-is documented as not affecting it.
-
-```sh
-npm run start-app        # same code, but running as EDEX
-```
-
-`start-app` builds an `EDEX.app` around the same Electron binary with our own `Info.plist` and icon,
-and symlinks its app directory to `src/` — so it is EDEX everywhere macOS shows a name, while edits
-still take effect on the next launch with no rebuild. The bundle lives in
-`~/Library/Caches/edex-build/dev/` and is rebuilt only when the Electron version changes. See
-[build/dev-app.js](build/dev-app.js).
-
-Both share the config folder and the single-instance lock with an installed EDEX: with
-`/Applications/EDEX.app` running, they hand their arguments to it and exit. The Finder service only
-ever talks to the installed app.
-
-## Checks
-
-```sh
-npm run lint   # ESLint, tuned for real defects rather than style; expected to stay at zero warnings
-npm test       # unit tests on node:test
-```
-
-The tests cover everything in `src/utils/` and `build/lib/`: escaping and shell quoting, config
-seeding and the shell environment, argv, origin and port handling, the keyboard's slot map, dead
-keys and control sequences (held to output recorded from the code they replaced), path fitting,
-number formatting, and the names the build and the Finder helper must agree on.
-
-Anything that needs a running app is in [SMOKE.md](SMOKE.md); run through it after a build.
-[CLAUDE.md](CLAUDE.md) collects the conventions and the platform quirks worth knowing before
-changing anything here.
-
-## Building a distributable
-
-```sh
-npm run build-darwin
-```
-
-That is the whole thing — npm runs `prebuild-darwin` and `postbuild-darwin` around it. The app is
-built and signed under `~/Library/Caches/edex-build/`, and the finished `.dmg` is copied into
-`dist/`.
-
-The output lives outside the project on purpose. macOS asynchronously puts an empty
-`com.apple.FinderInfo` on bundle directories in watched locations like the Desktop, and `codesign`
-refuses to sign anything carrying it — so a build inside such a folder fails partway through
-signing the nested bundles, unpredictably.
-
-### Signing, and why it matters here
-
-macOS binds granted permissions — Desktop, Documents, Downloads, Photos, Apple Music — to the
-app's code signing requirement. Signed with a certificate that requirement names the bundle id and
-the certificate, so it survives rebuilds and the permissions stay granted. Signed ad-hoc there is
-no certificate to name and macOS falls back to the hash of the build itself, which changes every
-time you rebuild: every rebuild looks like a brand new app and re-asks for everything.
-
-The build signs ad-hoc unless you point it at a certificate, which is fine for a one-off build and
-tiresome if you rebuild often. To set one up, create a self-signed code signing certificate:
-
-```sh
-openssl req -x509 -newkey rsa:2048 -sha256 -days 7300 -nodes \
-  -keyout key.pem -out cert.pem -subj "/CN=EDEX Local Signing" \
-  -addext "basicConstraints=critical,CA:false" \
-  -addext "keyUsage=critical,digitalSignature" \
-  -addext "extendedKeyUsage=critical,codeSigning"
-
-openssl pkcs12 -export -legacy -out cert.p12 -inkey key.pem -in cert.pem \
-  -name "EDEX Local Signing" -passout pass:changeit
-security import cert.p12 -k ~/Library/Keychains/login.keychain-db -P changeit -T /usr/bin/codesign
-security add-trusted-cert -r trustRoot -p codeSign -k ~/Library/Keychains/login.keychain-db cert.pem
-```
-
-The last command asks for your password and is what makes electron-builder able to find the
-certificate — it only looks at identities that are trusted for code signing. Confirm with
-`security find-identity -v -p codesigning`, delete `key.pem` and `cert.p12` (the private key now
-lives in the keychain), then name the certificate in `build/signing.env`, which is git-ignored:
-
-```sh
-export CSC_NAME="EDEX Local Signing"
-```
-
-A self-signed certificate solves the rebuild problem on your own machine and nothing else. It
-means nothing to anyone else's Mac: Gatekeeper will still refuse a downloaded build until the user
-allows it by hand. Distributing without that warning needs an Apple Developer ID and notarisation.
-
-### Developer ID and notarisation
-
-A build for other people's Macs is signed with a **Developer ID Application** certificate from the
-Apple Developer Program and notarised by Apple. Name the certificate in `build/signing.env` the
-way electron-builder expects it, without the `Developer ID Application:` prefix, and add the
-`notarytool` profile:
-
-```sh
-export CSC_NAME="Example Ltd (TEAM123456)"
-export APPLE_KEYCHAIN_PROFILE="apps-notary"
-```
-
-The profile is created once with
-`xcrun notarytool store-credentials apps-notary --apple-id <Apple ID> --team-id <Team ID>`, which
-asks for an app-specific password. When the identity is a Developer ID, `build/build-darwin.js`
-adds what notarisation demands on top of `package.json`: the hardened runtime, trusted timestamps
-and the entitlements in `build/entitlements.mac.plist`. electron-builder then notarises the app
-and staples the ticket to it, and the `.dmg` opens on any Mac without a warning.
-
-`mac.timestamp` stays `none` in `package.json` deliberately. A trusted timestamp keeps a
-signature valid past the certificate's expiry, which is pointless for a local certificate good
-until 2046, and it costs a network round-trip to Apple for each of the ~230 nested objects being
-signed — the difference between a build that takes ten minutes and one that takes eighty seconds.
-Only Developer ID builds pay that, because notarisation refuses a signature without one. They also
-leave Chromium's `.pak` resource packs, 223 of the files, to Electron Framework's own signature
-instead of signing each one: hundreds of timestamp requests in a row made Apple's server stop
-answering, and about thirty remain.
-
-Switching between identities is a new app as far as macOS is concerned: the folder permissions
-are asked for once more after the first build with the other certificate.
+Tests, signed builds and the conventions of the codebase are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Credits and attribution
 
