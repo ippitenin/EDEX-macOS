@@ -153,6 +153,7 @@ window._loadTheme = theme => {
         --color_black: ${window._purifyCSS(theme.colors.black)};
         --color_light_black: ${window._purifyCSS(theme.colors.light_black)};
         --color_grey: ${window._purifyCSS(theme.colors.grey)};
+        --color_terminal_bg: ${window._purifyCSS(theme.terminal.background) || "var(--color_light_black)"};
 
         /* Used for error and warning modals */
         --color_red: ${window._purifyCSS(theme.colors.red) || "red"};
