@@ -202,6 +202,9 @@ window-to-main plumbing and has not been attempted.
 <details>
 <summary><b>Version history</b></summary>
 
+- **2.4.5** (2026-10-21) — the disk image is signed and notarised too. electron-builder notarised
+  the app inside but left the `.dmg` with no signature at all, so Gatekeeper had nothing to check
+  before mounting it; now the image carries the Developer ID and Apple's ticket as well.
 - **2.4.4** (2026-10-16) — the terminal is dark again. Its frame was a half-transparent fill with
   the middle cut out, and Chromium sometimes dropped the cut-out, turning the whole terminal grey;
   the frame is now a plain border, and the page's dot grid no longer shows inside it.
