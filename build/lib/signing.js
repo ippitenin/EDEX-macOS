@@ -33,8 +33,17 @@ function isDeveloperId(cscName, identities) {
 }
 
 /**
- * The electron-builder config overrides for a Developer ID build. Notarisation itself needs no
- * switch: electron-builder notarises whenever APPLE_KEYCHAIN_PROFILE names a notarytool profile.
+ * The full identity codesign wants for CSC_NAME, which may come with or without the prefix.
+ * electron-builder finds the certificate itself; the disk image is signed by codesign directly.
+ */
+function developerIdIdentity(cscName) {
+    return cscName.startsWith(DEVELOPER_ID_PREFIX) ? cscName : `${DEVELOPER_ID_PREFIX}${cscName}`;
+}
+
+/**
+ * The electron-builder config overrides for a Developer ID build. Notarisation of the app needs no
+ * switch: electron-builder notarises it whenever APPLE_KEYCHAIN_PROFILE names a notarytool profile.
+ * The disk image is another matter, see build/lib/notarize.js.
  */
 function distributionOverrides() {
     return {
@@ -54,4 +63,4 @@ function distributionOverrides() {
     };
 }
 
-module.exports = {isDeveloperId, distributionOverrides, ENTITLEMENTS};
+module.exports = {isDeveloperId, developerIdIdentity, distributionOverrides, ENTITLEMENTS};
