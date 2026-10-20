@@ -117,7 +117,18 @@ The profile is created once with
 asks for an app-specific password. When the identity is a Developer ID, `build/build-darwin.js`
 adds what notarisation demands on top of `package.json`: the hardened runtime, trusted timestamps
 and the entitlements in `build/entitlements.mac.plist`. electron-builder then notarises the app
-and staples the ticket to it, and the `.dmg` opens on any Mac without a warning.
+and staples the ticket to it. The `.dmg` it wraps the app in is neither signed nor notarised, so
+`build/build-darwin.js` finishes the job (`build/lib/notarize.js`): it signs the image with a
+trusted timestamp, notarises it and staples that ticket too. Both the image and the app inside it
+then open on any Mac without a warning, also offline.
+
+Check a finished build the way a downloaded one is checked:
+
+```sh
+xcrun stapler validate dist/EDEX-macOS-arm64.dmg
+hdiutil attach -nobrowse -readonly dist/EDEX-macOS-arm64.dmg
+syspolicy_check distribution /Volumes/EDEX*/EDEX.app   # "App passed all pre-distribution checks"
+```
 
 `mac.timestamp` stays `none` in `package.json` deliberately. A trusted timestamp keeps a
 signature valid past the certificate's expiry, which is pointless for a local certificate good
