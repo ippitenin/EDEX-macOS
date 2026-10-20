@@ -88,7 +88,10 @@ npm run build-darwin     # signed .dmg into dist/; notarised when the identity i
   are (`build/lib/signing.js`). Under the hardened runtime whatever a program in the terminal asks
   macOS for is charged to EDEX and refused without a prompt unless the entitlements grant it:
   Apple events, the microphone and the camera are there, and anything else a shell turns out to
-  need goes there too. Notarisation runs whenever `APPLE_KEYCHAIN_PROFILE` is set. `.pak` files
+  need goes there too. Notarisation runs whenever `APPLE_KEYCHAIN_PROFILE` is set — of the app by
+  electron-builder, and of the `.dmg` by `build/lib/notarize.js` afterwards, because
+  electron-builder leaves the image unsigned (2.4.4 shipped that way: the app inside had its
+  ticket, the image had no signature at all). `.pak` files
   are not signed one by one there (`signIgnore`): with them every build made ~260 timestamp
   requests and Apple's server gave up partway. Even thirty in a row hit its pauses now and then,
   so those builds put `build/bin/codesign` first on PATH: it retries the one file that got no

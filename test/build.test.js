@@ -12,7 +12,8 @@ const {Arch} = require("builder-util");
 const {swiftTargetForArch} = require("../build/lib/arch.js");
 const {HELPER_NAME} = require("../build/afterPack.js");
 const {finderServiceHelper} = require("../src/utils/system.js");
-const {isDeveloperId, distributionOverrides, ENTITLEMENTS} = require("../build/lib/signing.js");
+const {isDeveloperId, developerIdIdentity, distributionOverrides, ENTITLEMENTS} = require("../build/lib/signing.js");
+const {notaryOutcome} = require("../build/lib/notarize.js");
 
 const root = path.join(__dirname, "..");
 const read = file => fs.readFileSync(path.join(root, file), "utf-8");
@@ -92,6 +93,26 @@ test("only a Developer ID in the keychain makes a distribution build", () => {
     assert.strictEqual(isDeveloperId("Example Ltd", IDENTITIES), false, "a partial name is not the identity");
     assert.strictEqual(isDeveloperId("Other Ltd (OTHER12345)", IDENTITIES), false, "not in the keychain");
     assert.strictEqual(isDeveloperId(undefined, IDENTITIES), false, "no CSC_NAME, ad-hoc");
+});
+
+test("the disk image is signed with the full Developer ID name", () => {
+    // electron-builder takes CSC_NAME without the prefix; codesign needs the whole identity.
+    assert.strictEqual(developerIdIdentity("Example Ltd (TEAM123456)"), "Developer ID Application: Example Ltd (TEAM123456)");
+    assert.strictEqual(developerIdIdentity("Developer ID Application: Example Ltd (TEAM123456)"),
+        "Developer ID Application: Example Ltd (TEAM123456)", "the prefix is not doubled");
+});
+
+test("a notarisation is judged by its status, not by the exit code", () => {
+    // notarytool exits 0 for a rejected submission too.
+    assert.deepStrictEqual(notaryOutcome('{"id":"9368928b","status":"Accepted","message":"Processing complete"}'),
+        {status: "Accepted", id: "9368928b"});
+    assert.deepStrictEqual(notaryOutcome('{"id":"dfb01d24","status":"Invalid","message":"Processing complete"}'),
+        {status: "Invalid", id: "dfb01d24"});
+    // Nothing usable means the request never reached Apple.
+    assert.deepStrictEqual(notaryOutcome(""), {status: null, id: null});
+    assert.deepStrictEqual(notaryOutcome("Error: No Keychain password item found for profile: apps-notary"), {status: null, id: null});
+    assert.deepStrictEqual(notaryOutcome("null"), {status: null, id: null});
+    assert.deepStrictEqual(notaryOutcome('{"status":42}'), {status: null, id: null});
 });
 
 test("a distribution build gets what notarisation demands", () => {

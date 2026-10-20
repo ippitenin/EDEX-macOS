@@ -47,6 +47,8 @@ that session's environment.
 - [ ] Developer ID build: `osascript -e 'tell application "Finder" to get name'` asks once to
       control Finder and then prints `Finder` — not "Not authorized to send Apple events"
 - [ ] Developer ID build: `xcrun stapler validate /Applications/EDEX.app` reports the ticket
+- [ ] Developer ID build: `xcrun stapler validate dist/EDEX-macOS-arm64.dmg` reports the ticket
+      and `codesign -dv` on the image names the Developer ID — the image is signed, not just the app
 
 ## On-screen keyboard
 
