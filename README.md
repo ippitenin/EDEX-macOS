@@ -202,6 +202,10 @@ window-to-main plumbing and has not been attempted.
 <details>
 <summary><b>Version history</b></summary>
 
+- **2.4.6** (2026-11-06) — "Open in EDEX" survives a macOS update. The update rebuilds the
+  LaunchServices database and drops the service agent nested in the app, so the entry was gone
+  until EDEX was next started; EDEX now also links the agent into `~/Library/Services`, which
+  macOS reads on its own.
 - **2.4.5** (2026-10-21) — the disk image is signed and notarised too. electron-builder notarised
   the app inside but left the `.dmg` with no signature at all, so Gatekeeper had nothing to check
   before mounting it; now the image carries the Developer ID and Apple's ticket as well.
