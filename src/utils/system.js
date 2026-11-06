@@ -143,6 +143,35 @@ function finderServiceHelper(exePath, home) {
     return path.join(bundle, "Contents", "Library", "Services", `${SERVICE_HELPER_NAME}.app`, "Contents", "MacOS", SERVICE_HELPER_NAME);
 }
 
+/**
+ * Where the helper bundle should be linked into ~/Library/Services, under the same rules as
+ * finderServiceHelper: {target, link}, or null when the running copy is not an installed one.
+ *
+ * pbs scans ~/Library/Services by itself, symlinks included, whatever the LaunchServices database
+ * says. A macOS update rebuilds that database and drops the helper nested in the app, so a
+ * registration that lives only there was gone until EDEX was next started; the link is not.
+ */
+function finderServiceLink(exePath, home) {
+    const helper = finderServiceHelper(exePath, home);
+    if (!helper || typeof home !== "string" || !home) return null;
+    // .../EDEX Service.app/Contents/MacOS/EDEX Service → .../EDEX Service.app
+    const target = path.dirname(path.dirname(path.dirname(helper)));
+    return {target, link: path.join(home, "Library", "Services", path.basename(target))};
+}
+
+/**
+ * Decides what to do at the link's path, given what is there: null for nothing, the target of a
+ * symlink, or false for anything that is not a symlink.
+ *
+ * A symlink pointing elsewhere is EDEX's own from an earlier install location and is replaced, so
+ * the copy started last wins. Anything else was put there by someone else and is left alone.
+ */
+function serviceLinkAction(existing, target) {
+    if (existing === null) return "create";
+    if (existing === false || existing === target) return "keep";
+    return "replace";
+}
+
 module.exports = {
     extractDirFromArgv,
     isAllowedOrigin,
@@ -152,5 +181,7 @@ module.exports = {
     pickStartDisplay,
     resolveSpawnCwd,
     firstFreeSlot,
-    finderServiceHelper
+    finderServiceHelper,
+    finderServiceLink,
+    serviceLinkAction
 };

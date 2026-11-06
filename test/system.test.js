@@ -11,7 +11,9 @@ const {
     pickStartDisplay,
     resolveSpawnCwd,
     firstFreeSlot,
-    finderServiceHelper
+    finderServiceHelper,
+    finderServiceLink,
+    serviceLinkAction
 } = require("../src/utils/system.js");
 
 // A stand-in filesystem: only the listed paths exist, and only as directories.
@@ -204,4 +206,48 @@ test("finderServiceHelper needs an executable inside an app bundle", () => {
     for (const exe of ["/Applications/edex", "/Applications/EDEX.app", "", undefined, null]) {
         assert.strictEqual(finderServiceHelper(exe, "/Users/me"), null, String(exe));
     }
+});
+
+test("finderServiceLink links the helper bundle into ~/Library/Services", () => {
+    assert.deepStrictEqual(finderServiceLink("/Applications/EDEX.app/Contents/MacOS/EDEX", "/Users/me"), {
+        target: "/Applications/EDEX.app/Contents/Library/Services/EDEX Service.app",
+        link: "/Users/me/Library/Services/EDEX Service.app"
+    });
+    assert.deepStrictEqual(finderServiceLink("/Users/me/Applications/EDEX.app/Contents/MacOS/EDEX", "/Users/me"), {
+        target: "/Users/me/Applications/EDEX.app/Contents/Library/Services/EDEX Service.app",
+        link: "/Users/me/Library/Services/EDEX Service.app"
+    });
+});
+
+test("finderServiceLink follows finderServiceHelper on which copies count", () => {
+    // A link into the build cache or a disk image would outlive the copy it points at.
+    for (const exe of [
+        "/Users/me/Library/Caches/edex-build/mac-arm64/EDEX.app/Contents/MacOS/EDEX",
+        "/Volumes/EDEX 2.4.2/EDEX.app/Contents/MacOS/EDEX",
+        "/Applications/EDEX.app",
+        "relative/EDEX.app/Contents/MacOS/EDEX"
+    ]) {
+        assert.strictEqual(finderServiceLink(exe, "/Users/me"), null, exe);
+    }
+});
+
+test("finderServiceLink needs a home folder to link into", () => {
+    for (const home of ["", undefined, null]) {
+        assert.strictEqual(finderServiceLink("/Applications/EDEX.app/Contents/MacOS/EDEX", home), null, String(home));
+    }
+});
+
+test("serviceLinkAction creates, keeps or replaces the link", () => {
+    const target = "/Applications/EDEX.app/Contents/Library/Services/EDEX Service.app";
+    assert.strictEqual(serviceLinkAction(null, target), "create");
+    assert.strictEqual(serviceLinkAction(target, target), "keep");
+    assert.strictEqual(
+        serviceLinkAction("/Users/me/Applications/EDEX.app/Contents/Library/Services/EDEX Service.app", target),
+        "replace"
+    );
+});
+
+test("serviceLinkAction leaves anything that is not a symlink alone", () => {
+    // A real bundle or file at that path is someone's own; EDEX only manages its own link.
+    assert.strictEqual(serviceLinkAction(false, "/Applications/EDEX.app/Contents/Library/Services/EDEX Service.app"), "keep");
 });

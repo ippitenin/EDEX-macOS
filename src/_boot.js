@@ -9,7 +9,7 @@ const which = require("which");
 const remoteMain = require("@electron/remote/main");
 const Terminal = require("./classes/terminal.class.js").Terminal;
 const {findFreePort} = require("./utils/net.js");
-const {extractDirFromArgv, pickStartDisplay, resolveSpawnCwd, firstFreeSlot, finderServiceHelper} = require("./utils/system.js");
+const {extractDirFromArgv, pickStartDisplay, resolveSpawnCwd, firstFreeSlot, finderServiceHelper, finderServiceLink, serviceLinkAction} = require("./utils/system.js");
 const {mergeMissingSettings, mergeMissingShortcuts, isPlainObject, buildShellEnv, preferredPort, parseShellArgs} = require("./utils/config.js");
 
 // Declared ahead of everything that can throw: the crash handler below reads them, and a let still
@@ -244,11 +244,42 @@ function logVersion() {
 // reach the services menu. A fresh install therefore had no "Open in EDEX" until something
 // registered the helper by hand, so the helper is asked to do it itself on every launch. Nothing
 // waits for it: at worst the entry stays missing, as it was.
+//
+// That registration lives in the LaunchServices database, which a macOS update rebuilds without
+// the nested helper: after 27.1 → 27.2 the entry was gone until EDEX was next started. The helper
+// is therefore also linked into ~/Library/Services, which pbs scans on its own. One entry results,
+// not two: pbs keys services by bundle id.
+function linkFinderService(target, link) {
+    let existing;
+    try {
+        existing = fs.lstatSync(link).isSymbolicLink() ? fs.readlinkSync(link) : false;
+    } catch (err) {
+        if (err.code !== "ENOENT") throw err;
+        existing = null;
+    }
+
+    const action = serviceLinkAction(existing, target);
+    if (action === "keep") return;
+    if (action === "replace") fs.unlinkSync(link);
+    fs.mkdirSync(path.dirname(link), {recursive: true});
+    fs.symlinkSync(target, link);
+}
+
 function registerFinderService() {
     if (process.platform !== "darwin") return;
     const helper = finderServiceHelper(app.getPath("exe"), app.getPath("home"));
     // A build made without swiftc ships without the helper.
     if (!helper || !fs.existsSync(helper)) return;
+
+    const {target, link} = finderServiceLink(app.getPath("exe"), app.getPath("home"));
+    try {
+        linkFinderService(target, link);
+    } catch (err) {
+        signale.warn("Could not link the Finder service into ~/Library/Services:", err.message);
+    }
+
+    // --register also runs NSUpdateDynamicServices, which is what makes pbs rescan and pick up a
+    // link made a moment ago.
     execFile(helper, ["--register"], err => {
         if (err) signale.warn("Could not register the Finder service:", err.message);
     });
