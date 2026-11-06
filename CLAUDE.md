@@ -130,3 +130,6 @@ npm run build-darwin     # signed .dmg into dist/; notarised when the identity i
   `EDEX.app` covers `Contents/Frameworks`, not `Contents/Library/Services`, and an unregistered
   helper means no menu entry. EDEX runs the helper with `--register` on every launch from an
   Applications folder, so after an install the entry appears once the app has been started.
+  A macOS update rebuilds the LaunchServices database and drops that registration again, which is
+  why EDEX also keeps a symlink to the helper in `~/Library/Services`: pbs scans that folder on its
+  own and follows the link. Both together still give one entry, since pbs keys services by bundle id.
